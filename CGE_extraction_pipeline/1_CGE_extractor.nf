@@ -5,13 +5,14 @@ params.genome = "${params.genomestring[0]}"
 params.orf2folder = "$projectDir/analysis/${params.species}/ORF2"
 params.repeats = "$projectDir/repeats/CGE_RVT_over200_80cluster.fa"
 params.dbname = "${params.species}"
+
+// Set conda env based on your system
 params.conda_env = '/hpcfs/users/a1749756/myconda/envs/bedtools'
 params.clstr2txt = "${projectDir}/tools/clstr2txt.pl"
 
 
 
 process CONDA{
-
     conda params.conda_env
     script:
     """
@@ -114,44 +115,6 @@ process EXTRACTSSEQS {
     """
 }
 
-process CLUSTERING {
-    tag "Cluster at 80%"
-
-    cpus { 8 }
-    time { '48h' }
-    memory { '64.GB' }
-
-    input:
-    path orf2folder
-
-    output:
-    path orf2folder
-    
-    script:
-    """
-    cd-hit-est -i ${params.orf2folder}/${params.species}_sizefiltered.fa \
-    -o ${params.orf2folder}/${params.species}_sizefiltered_subfams80 -c 0.8 -d 0
-    """
-}
-
-process PARSING {
-    tag "Remove clusters with less than 5 representatives"
-
-    input:
-    path orf2folder
-
-    output:
-    path orf2folder
-    
-    script:
-    """    
-    perl ${params.clstr2txt} ${params.orf2folder}/${params.species}_sizefiltered_subfams80.clstr| awk -F '\\t' '\$3 > 5 && \$5 == 1 {print \$1}' > ${params.orf2folder}/${params.species}_tmp
-    seqkit grep -r -f ${params.orf2folder}/${params.species}_tmp ${params.orf2folder}/${params.species}_sizefiltered_subfams80 | \
-    awk -F '>' '/^>/ { \$1 = ">${params.species}_TEXXXX" ++i + 100000 "_" } 1 ' OFS="" | \
-    sed 's/TEXXXX1/TE/' | sed '/^>/ s/\$/#LINE/' \
-    > ${params.orf2folder}/${params.species}_sizefiltered_subfams80_parsed.fa
-    """
-}
 
 process CHECK_FILE {
     tag "Check if file is empty"
@@ -179,7 +142,5 @@ workflow {
     tblastn_ch = TBLASTN(makeblastdb_ch, params.repeats)
     preparebed_ch = PREPAREBEDFILE(tblastn_ch)
     extractseqs_ch = EXTRACTSSEQS(preparebed_ch, params.genome)
-    cluster_ch = CLUSTERING(extractseqs_ch)
-    parsing_ch = PARSING(cluster_ch)
-    CHECK_FILE(parsing_ch, params.orf2folder)
+    CHECK_FILE(extractseqs_ch, params.orf2folder)
 }
