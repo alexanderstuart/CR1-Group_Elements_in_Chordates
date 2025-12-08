@@ -22,3 +22,7 @@ Tools used
 `TE-Aid (add version)`
 
 `Nextflow (add version)`
+
+`BUSCO (v5.8.2)`
+
+`PAL2NAL (v4)`
