@@ -1,14 +1,14 @@
 params.species = "setmeup"
 params.divergence = "85"
-params.genomefolder = "/hpcfs/users/a1749756/CGE_project/genomes/${params.species}/ncbi_dataset/data"
-params.genomestring = file("/hpcfs/users/a1749756/CGE_project/genomes/${params.species}/ncbi_dataset/data/*/*.fna")
+params.genomefolder = "${projectDir}/genomes/${params.species}/ncbi_dataset/data"
+params.genomestring = file("${projectDir}/genomes/${params.species}/ncbi_dataset/data/*/*.fna")
 params.genome = "${params.genomestring[0]}"
-params.orf2folder = "/hpcfs/users/a1749756/CGE_project/analysis/${params.species}/ORF2"
-params.repeatfolder = "/hpcfs/users/a1749756/CGE_project/repeats"
-params.repeatcuration = "/hpcfs/users/a1749756/CGE_project/analysis/${params.species}/repeatcuration"
-params.mchelperfolder = "/hpcfs/users/a1749756/CGE_project/analysis/${params.species}/repeatcuration/MCHelper3"
-params.eukrepeats = "/hpcfs/users/a1749756/CGE_project/repeats/RepBase2022_RMSK_Eukaryota_withTacu.fa"
-params.hmm = "/hpcfs/users/a1749756/CGE_project/repeats/dummyfile.hmm"
+params.orf2folder = "${projectDir}/analysis/${params.species}/ORF2"
+params.repeatfolder = "${projectDir}/repeats"
+params.repeatcuration = "${projectDir}/analysis/${params.species}/repeatcuration"
+params.mchelperfolder = "${projectDir}/analysis/${params.species}/repeatcuration/MCHelper"
+params.eukrepeats = "${projectDir}/repeats/RepBase2022_RMSK_Eukaryota_withTacu.fa"
+params.hmm = "${projectDir}/repeats/dummyfile.hmm"
 params.dbname = "${params.species}"
 params.conda_env = '/hpcfs/users/a1749756/myconda/envs/MCHelper'
 
@@ -33,15 +33,15 @@ process FOLDERSETUP {
     script:
     """
     # Check if the folder exists
-    if [ ! -d "/hpcfs/users/a1749756/CGE_project/analysis/${params.species}/repeatcuration/MCHelper3" ]; then
+    if [ ! -d "${projectDir}/analysis/${params.species}/repeatcuration/MCHelper" ]; then
         # If it doesn't exist, create it
-        mkdir -p "/hpcfs/users/a1749756/CGE_project/analysis/${params.species}/repeatcuration/MCHelper3"
+        mkdir -p "${projectDir}/analysis/${params.species}/repeatcuration/MCHelper"
     fi
     """
 }
 
-process MCHELPER3 {
-    tag "Run MCHelper3 on ${params.species} repeats"
+process MCHELPER {
+    tag "Run MCHelper on ${params.species} repeats"
 
     cpus { 30 }
     time { '72h' }
@@ -75,7 +75,7 @@ process CHECK_FILE {
     """
     if [ -s ${params.mchelperfolder}/curated_sequences_NR.fa ]
     then
-        echo "${params.species}" >> /hpcfs/users/a1749756/CGE_project/other/completed_MCHelper3_runs.txt
+        echo "${params.species}" >> ${projectDir}/other/completed_MCHelper_runs.txt
     else
         echo "Error: File is empty" >&2
         exit 1
@@ -86,7 +86,7 @@ process CHECK_FILE {
 workflow {
     CONDA
     foldersetup_ch = FOLDERSETUP()
-    mchelper_ch = MCHELPER3(foldersetup_ch, params.orf2folder, params.repeatfolder, params.mchelperfolder)
+    mchelper_ch = MCHELPER(foldersetup_ch, params.orf2folder, params.repeatfolder, params.mchelperfolder)
     CHECK_FILE(mchelper_ch, params.mchelperfolder)
 }
 
