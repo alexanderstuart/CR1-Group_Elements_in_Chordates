@@ -6,7 +6,7 @@ params.orf2folder = "$projectDir/analysis/${params.species}/ORF2"
 params.repeats = "$projectDir/repeats/Jockey_RVT_over200_85cluster.fa"
 params.dbname = "${params.species}"
 params.conda_env = '/hpcfs/users/a1749756/myconda/envs/bedtools'
-params.mchelper3folder = "$projectDir/analysis/${params.species}/repeatcuration/MCHelper3"
+params.mchelperfolder = "$projectDir/analysis/${params.species}/repeatcuration/MCHelper"
 params.extendfolder = "$projectDir/analysis/${params.species}/repeatcuration/extension"
 
 Channel.fromPath("${params.extendfolder}/*")
@@ -31,7 +31,7 @@ process CONFIRMJOCKEYSTATUS {
 
     script:
     """
-    grep ">" ${params.mchelper3folder}/curated_sequences_NR.fa | cut -c 2-15 | sort | uniq > ${params.mchelper3folder}/curated_sequences_NR.txt
+    grep ">" ${params.mchelperfolder}/curated_sequences_NR.fa | cut -c 2-15 | sort | uniq > ${params.mchelperfolder}/curated_sequences_NR.txt
 
     while IFS= read -r line
     do
@@ -39,12 +39,12 @@ process CONFIRMJOCKEYSTATUS {
         do
             if grep -qF "\$word" ${params.orf2folder}/85/${params.species}_85_jockeyRMSKlist.txt
             then
-                echo "\$word" >> ${params.mchelper3folder}/Jockey_curated_sequences_NR.txt
+                echo "\$word" >> ${params.mchelperfolder}/Jockey_curated_sequences_NR.txt
             else
-                echo "\$word" >> ${params.mchelper3folder}/notJockey_curated_sequences_NR.txt
+                echo "\$word" >> ${params.mchelperfolder}/notJockey_curated_sequences_NR.txt
             fi
         done
-    done < ${params.mchelper3folder}/curated_sequences_NR.txt
+    done < ${params.mchelperfolder}/curated_sequences_NR.txt
     """
 }
 
@@ -65,7 +65,7 @@ process FOLDERSETUP {
     if [ ! -d "${projectDir}/analysis/${params.species}/repeatcuration/extension" ]; then
         # If it doesn't exist, create it
         mkdir -p "${projectDir}/analysis/${params.species}/repeatcuration/extension" 
-        seqkit split -i -O ${params.extendfolder} ${params.mchelper3folder}/curated_sequences_NR.fa
+        seqkit split -i -O ${params.extendfolder} ${params.mchelperfolder}/curated_sequences_NR.fa
         rename 's/curated_sequences_NR.part_//' ${params.extendfolder}/*
         find ${params.extendfolder} -type f -exec bash -c 'file={}; dir=\${file%.*}; mkdir -p \$dir; mv \$file \$dir' \\;
     fi
