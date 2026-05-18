@@ -1,8 +1,8 @@
-# CR1-Group_Elements_in_Chordates
+# CR1-Group_Elements_in_Vertebrates
 
 # CGE Extraction Pipeline
 
-This repository contains the workflows described in the methods of (include bioRxiv link). The pipeline used to identify and curate CR1-group elements (CGEs) from chordate genomesis implemented in Nextflow and designed to run on a SLURM-managed HPC.
+This repository contains the workflows described in the methods of [Ancient persistence and newfound diversity of CR1-group retrotransposons across vertebrates](https://www.biorxiv.org/content/10.64898/2026.01.13.699120v2). The pipeline used to identify and curate CR1-group elements (CGEs) from chordate genomesis implemented in Nextflow and designed to run on a SLURM-managed HPC.
 
 
 Tools used
